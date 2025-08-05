@@ -21,6 +21,7 @@ jobs:
         run: echo "$GOOGLE_CREDENTIALS" > service-account-key.json
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TIME_SLOTS: 7-7:30am,7:30-8am,8-8:30am,8:30-9am
 
       - name: Run bot + add to calendar
         run: node test.js
