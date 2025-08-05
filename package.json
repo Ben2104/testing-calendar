@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "dependencies": {
     "googleapis": "^155.0.0"
   }

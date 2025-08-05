@@ -1,10 +1,13 @@
 import { google } from 'googleapis';
 import { readFileSync } from 'fs';
 
+const credentialsFile = process.env.GITHUB_ACTIONS ? './service-account-key.json' : './credentials.json';
+
 const auth = new google.auth.GoogleAuth({
-  credentials: JSON.parse(readFileSync('./credentials.json', 'utf-8')),
+  credentials: JSON.parse(readFileSync(credentialsFile, 'utf-8')),
   scopes: ['https://www.googleapis.com/auth/calendar'],
 });
+
 
 const calendar = google.calendar({ version: 'v3', auth });
 
