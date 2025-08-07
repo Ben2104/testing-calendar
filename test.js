@@ -7,7 +7,7 @@ if (!process.env.GITHUB_ACTIONS) {
   dotenv.config();
 }
 
-const credentialsFile = process.env.GITHUB_ACTIONS ? './service-account-key.json' : (process.env.CREDENTIALS_FILE || './credentials.json');
+const credentialsFile = process.env.GITHUB_ACTIONS ? './service-account-key.json' : (process.env.GOOGLE_CREDENTIALS || './credentials.json');
 
 // Load TIME_SLOTS from environment variable or fallback to default
 const TIME_SLOTS = process.env.TIME_SLOTS
