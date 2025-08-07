@@ -12,40 +12,67 @@ const credentialsFile = process.env.GITHUB_ACTIONS ? './service-account-key.json
 // Load TIME_SLOTS from environment variable or fallback to default
 const TIME_SLOTS = process.env.TIME_SLOTS
   ? process.env.TIME_SLOTS.split(',')
-  : ["7-7:30am", "7:30-8am", "8-8:30am", "8:30-9am"];
+  : ["8-8:30pm", "8:30-9pm", "9-9:30pm", "9:30-10pm"];
 
 const CALENDAR_ID = process.env.CALENDAR_ID || '65b939118e3c9b5e436484429b3cecb9c9b6c7d326ba770071f1aeeb0d7a5bba@group.calendar.google.com';
 
 // Function to parse time slots and get start/end times
+// Function to parse time slots and get start/end times
 function parseTimeSlots(timeSlots) {
   console.log('🕒 Parsing time slots:', timeSlots);
   
-  // Get first slot start time
-  const firstSlot = timeSlots[0]; // "7-7:30am"
+  // Get first slot start time - need to preserve AM/PM from the slot
+  const firstSlot = timeSlots[0]; // "7-7:30pm"
   const startTime = firstSlot.split('-')[0]; // "7"
   
   // Get last slot end time
-  const lastSlot = timeSlots[timeSlots.length - 1]; // "8:30-9am"
-  const endTime = lastSlot.split('-')[1]; // "9am"
+  const lastSlot = timeSlots[timeSlots.length - 1]; // "8:30-9pm"  
+  const endTime = lastSlot.split('-')[1]; // "9pm"
   
-  console.log('⏰ Start time:', startTime);
+  // For start time, we need to infer AM/PM from the slot
+  // If the slot contains 'pm', the start time should also be 'pm'
+  // If the slot contains 'am', the start time should also be 'am'
+  let startTimeWithPeriod = startTime;
+  if (firstSlot.includes('pm')) {
+    startTimeWithPeriod = startTime + 'pm';
+  } else if (firstSlot.includes('am')) {
+    startTimeWithPeriod = startTime + 'am';
+  }
+  
+  console.log('⏰ Start time:', startTimeWithPeriod);
   console.log('⏰ End time:', endTime);
   
-  return { startTime, endTime };
+  return { startTime: startTimeWithPeriod, endTime };
 }
 
 // Function to convert time string to 24-hour format
 function convertTo24Hour(timeStr) {
-  // Remove 'am' and handle cases like "7", "7:30", "9"
-  const cleanTime = timeStr.replace('am', '').trim();
+  const isPM = timeStr.includes('pm');
+  const isAM = timeStr.includes('am');
+  
+  // Remove 'am' or 'pm' and handle cases like "7", "7:30", "9"
+  const cleanTime = timeStr.replace(/(am|pm)/g, '').trim();
+  
+  let hour, minute;
   
   if (cleanTime.includes(':')) {
-    return cleanTime + ':00'; // "7:30" -> "7:30:00"
+    [hour, minute] = cleanTime.split(':');
   } else {
-    return cleanTime + ':00:00'; // "7" -> "7:00:00", "9" -> "9:00:00"
+    hour = cleanTime;
+    minute = '00';
   }
+  
+  // Convert to 24-hour format
+  let hour24 = parseInt(hour);
+  
+  if (isPM && hour24 !== 12) {
+    hour24 += 12;
+  } else if (isAM && hour24 === 12) {
+    hour24 = 0;
+  }
+  
+  return `${hour24.toString().padStart(2, '0')}:${minute}:00`;
 }
-
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(readFileSync(credentialsFile, 'utf-8')),
   scopes: ['https://www.googleapis.com/auth/calendar'],
