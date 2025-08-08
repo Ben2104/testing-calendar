@@ -108,7 +108,7 @@ export async function addCalendarEvent(startDateTime, endDateTime) {
     });
 
     console.log('✅ Event added to calendar');
-    console.log('📋 Response:', response.data);
+    console.log('📋 Response:', response.data.htmlLink);
     return response.data;
   } catch (error) {
     console.error('❌ Error adding event to calendar:');
